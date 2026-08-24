@@ -2,7 +2,7 @@ name: Stündlicher Trading Scanner
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Läuft jede Stunde automatisch
+    - cron: '0 * * * *' # Läuft jede Stunde automatisch
   workflow_dispatch:      # Ermöglicht auch den manuellen Start per Klick
 
 jobs:
