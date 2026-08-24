@@ -2,8 +2,8 @@ name: Stündlicher Trading Scanner
 
 on:
   schedule:
-    - cron: '0 * * * *' # Läuft jede Stunde automatisch
-  workflow_dispatch:      # Ermöglicht auch den manuellen Start per Klick
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   run-scanner:
@@ -22,5 +22,7 @@ jobs:
           pip install yfinance pandas
 
       - name: Scanner ausführen
+        env:
+          GMAIL_APP_PW: ${{ secrets.GMAIL_APP_PW }}
         run: |
           python scanner.py
