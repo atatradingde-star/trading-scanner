@@ -1,0 +1,26 @@
+name: Stündlicher Trading Scanner
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Läuft jede Stunde automatisch
+  workflow_dispatch:      # Ermöglicht auch den manuellen Start per Klick
+
+jobs:
+  run-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code herunterladen
+        uses: actions/checkout@v3
+
+      - name: Python einrichten
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install yfinance pandas
+
+      - name: Scanner ausführen
+        run: |
+          python scanner.py
