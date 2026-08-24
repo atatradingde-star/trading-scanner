@@ -1,3 +1,4 @@
+import os
 import yfinance as yf
 import pandas as pd
 import datetime
@@ -51,7 +52,7 @@ for symbol in nasdaq_symbols:
             
             sender = "ata.trading.de@gmail.com"
             receiver = "ata.trading.de@gmail.com"
-            app_pw = "apvsulwotmlaxrbc"
+            app_pw = os.environ.get("GMAIL_APP_PW") # Holt das Passwort sicher aus den GitHub Secrets
             
             msg = MIMEMultipart()
             msg['From'] = sender
@@ -59,13 +60,13 @@ for symbol in nasdaq_symbols:
             msg['Subject'] = f"🚨 Trading-Signal: {symbol} kaufen! (RSI: {rsi_wert:.1f})"
             
             body = f"""
-            Deine automatisierte Cloud-Strategie hat im Nasdaq 100 zugeschlagen!
-            - Aktie: {symbol}
-            - Kurs: {close_eur:.2f} €
-            - RSI: {rsi_wert:.2f} (unter 30!)
-            - Budget: {budget_eur} € auf Trade Republic
-            - Kaufmenge ca.: {aktien_menge:.2f} Anteile
-            """
+Deine automatisierte Cloud-Strategie hat im Nasdaq 100 zugeschlagen!
+- Aktie: {symbol}
+- Kurs: {close_eur:.2f} €
+- RSI: {rsi_wert:.2f} (unter 30!)
+- Budget: {budget_eur} € auf Trade Republic
+- Kaufmenge ca.: {aktien_menge:.2f} Anteile
+"""
             msg.attach(MIMEText(body, 'plain'))
             
             server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -74,6 +75,7 @@ for symbol in nasdaq_symbols:
             server.sendmail(sender, receiver, msg.as_string())
             server.quit()
             print(f"Treffer & E-Mail gesendet für: {symbol}")
+            
     except Exception as e:
         continue
 
