@@ -7,18 +7,19 @@ import requests
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# TEST-MODUS: Nur 1 Aktie zum schnellen Testen
+# TEST-MODUS: Nur Apple für den sofortigen Test
 nasdaq_symbols = ["AAPL"]
 
 budget_eur = 250.0
 
 print(f"Starte TEST-Cloud-Scan für {len(nasdaq_symbols)} Aktien am {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}...")
 
-# EUR/USD Wechselkurs holen
+# EUR/USD Wechselkurs einmalig vorab holen
 try:
     eurusd = yf.Ticker("EURUSD=X").history(period="1d")['Close'].iloc[-1]
 except Exception:
     eurusd = 1.08
+print(f"Aktueller Wechselkurs EUR/USD: {eurusd:.4f}")
 
 # Credentials aus den GitHub Secrets laden
 gmail_app_pw = os.environ.get("GMAIL_APP_PW")
@@ -51,17 +52,18 @@ for symbol in nasdaq_symbols:
         aktien_menge = budget_eur / close_eur
 
         nachricht_text = (
-            f"🚨 TEST-SIGNAL: {symbol} kaufen!\n"
-            f"- Kurs: {close_eur:.2f} €\n"
-            f"- RSI: {rsi_wert:.2f} (Test-Modus aktiv)\n"
-            f"- Budget: {budget_eur} €\n"
-            f"- Kaufmenge ca.: {aktien_menge:.2f} Anteile"
+            f"🚨 TEST-SIGNAL! 🚨\n"
+            f"Aktie: {symbol}\n"
+            f"Kurs: {close_eur:.2f} €\n"
+            f"RSI: {rsi_wert:.2f} (Test-Modus)\n"
+            f"Budget: {budget_eur} €\n"
+            f"Kaufmenge ca.: {aktien_menge:.2f} Anteile"
         )
 
-        # TEST-BEDINGUNG: Greift jetzt garantiert sofort bei Apple!
+        # TEST-BEDINGUNG: Greift jetzt garantiert sofort
         if rsi_wert < 100:
 
-            # E-Mail senden
+            # 1. E-Mail senden
             if gmail_app_pw:
                 try:
                     msg = MIMEMultipart()
@@ -75,11 +77,11 @@ for symbol in nasdaq_symbols:
                     server.login(sender, gmail_app_pw)
                     server.sendmail(sender, receiver, msg.as_string())
                     server.quit()
-                    print("E-Mail erfolgreich gesendet!")
+                    print(f"E-Mail erfolgreich gesendet für: {symbol}")
                 except Exception as mail_err:
-                    print(f"Fehler beim E-Mail-Versand: {mail_err}")
+                    print(f"Fehler beim E-Mail-Versand für {symbol}: {mail_err}")
 
-            # Telegram senden
+            # 2. Telegram senden mit genauer Status-Ausgabe
             if telegram_token and telegram_chat_id:
                 try:
                     url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
@@ -88,13 +90,14 @@ for symbol in nasdaq_symbols:
                         "text": nachricht_text,
                         "parse_mode": "Markdown"
                     }
-                    requests.post(url, json=payload)
-                    print("Telegram-Nachricht erfolgreich gesendet!")
+                    response = requests.post(url, json=payload)
+                    print(f"Telegram API Antwort für {symbol}: {response.status_code} - {response.text}")
                 except Exception as tg_err:
-                    print(f"Fehler beim Telegram-Versand: {tg_err}")
+                    print(f"Fehler beim Telegram-Versand für {symbol}: {tg_err}")
+
+            print(f"Treffer verarbeitet für: {symbol}")
 
     except Exception as e:
-        print(f"Fehler: {e}")
         continue
 
 print("TEST-Scan erfolgreich beendet.")
